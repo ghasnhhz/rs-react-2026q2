@@ -1,11 +1,12 @@
-import { Component } from "react";
-import Header from "./components/Header";
-import Main from "./components/Main";
+import { Component } from 'react';
+import Header from './components/Header';
+import Main from './components/Main';
 
-class App extends Component<object, {lastSearch: string}> {
+class App extends Component<object, { lastSearch: string }> {
   constructor(props: object) {
     super(props);
-    this.state = {lastSearch: ""}
+    const saved = localStorage.getItem("searchTerm") || "";
+    this.state = { lastSearch: saved};
   }
 
   handleSearch = (searchTerm: string) => {
@@ -14,7 +15,7 @@ class App extends Component<object, {lastSearch: string}> {
     if (cleanTerm === this.state.lastSearch) return;
 
     this.setState({ lastSearch: cleanTerm });
-  }
+  };
 
   render() {
     return (

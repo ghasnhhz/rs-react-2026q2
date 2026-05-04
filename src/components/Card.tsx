@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import './Card.css';
 
 interface Season {
   uid: string;
@@ -17,12 +18,15 @@ interface CardProps {
 class Card extends Component<CardProps> {
   render() {
     const { season } = this.props;
+    const episodeText = season.numberOfEpisodes 
+      ? `${season.numberOfEpisodes} episodes`
+      : 'N/A';
 
     return (
       <div className="card">
         <div className="card-name">{season.title}</div>
         <div className="card-description">
-          {season.series.title} ({season.numberOfEpisodes} episodes)
+          {season.series.title} ({episodeText})
         </div>
       </div>
     );

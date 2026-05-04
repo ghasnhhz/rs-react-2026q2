@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import Card from './Card';
+import './CardList.css';
 
 interface Season {
   uid: string;

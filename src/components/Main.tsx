@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import CardList from './CardList';
+import './Main.css';
 
 interface Season {
   uid: string;
@@ -53,11 +54,14 @@ class Main extends Component<MainProps, MainState> {
         params.append('title', term);
       }
 
-      const response = await fetch('http://stapi.co/api/v1/rest/season/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-      });
+      const response = await fetch(
+        'http://stapi.co/api/v1/rest/season/search',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
