@@ -55,7 +55,7 @@ class Main extends Component<MainProps, MainState> {
       }
 
       const response = await fetch(
-        'http://stapi.co/api/v1/rest/season/search',
+        'https://stapi.co/api/v1/rest/season/search',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
