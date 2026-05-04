@@ -20,6 +20,7 @@ interface MainState {
   loading: boolean;
   results: Season[];
   error: string | null;
+  shouldThrowError: boolean;
 }
 
 class Main extends Component<MainProps, MainState> {
@@ -29,6 +30,7 @@ class Main extends Component<MainProps, MainState> {
       loading: false,
       results: [],
       error: null,
+      shouldThrowError: false,
     };
   }
 
@@ -78,10 +80,14 @@ class Main extends Component<MainProps, MainState> {
   };
 
   handleErrorButtonClick = () => {
-    throw new Error('Test error from Main component');
+    this.setState({ shouldThrowError: true });
   };
 
   render() {
+    if (this.state.shouldThrowError) {
+      throw new Error('Test error from Main component');
+    }
+
     const { loading, results, error } = this.state;
 
     return (
