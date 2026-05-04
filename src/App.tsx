@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import Header from './components/Header';
 import Main from './components/Main';
+import ErrorBoundary from './components/ErrorBoundary';
 
 class App extends Component<object, { lastSearch: string }> {
   constructor(props: object) {
@@ -19,10 +20,10 @@ class App extends Component<object, { lastSearch: string }> {
 
   render() {
     return (
-      <>
+      <ErrorBoundary>
         <Header onSubmitted={this.handleSearch} />
         <Main searchTerm={this.state.lastSearch} />
-      </>
+      </ErrorBoundary>
     );
   }
 }
