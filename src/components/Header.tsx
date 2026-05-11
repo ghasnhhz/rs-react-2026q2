@@ -28,8 +28,9 @@ class Header extends Component<HeaderProps, HeaderState> {
   };
 
   handleButtonClick = () => {
-    localStorage.setItem('searchTerm', this.state.input);
-    this.props.onSubmitted(this.state.input);
+    const cleanTerm = this.state.input.trim();
+    localStorage.setItem('searchTerm', cleanTerm);
+    this.props.onSubmitted(cleanTerm);
   };
 
   render() {

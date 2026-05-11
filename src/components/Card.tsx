@@ -18,7 +18,7 @@ interface CardProps {
 class Card extends Component<CardProps> {
   render() {
     const { season } = this.props;
-    const episodeText = season.numberOfEpisodes 
+    const episodeCount = season.numberOfEpisodes 
       ? `${season.numberOfEpisodes} episodes`
       : 'N/A';
 
@@ -26,7 +26,7 @@ class Card extends Component<CardProps> {
       <div className="card">
         <div className="card-name">{season.title}</div>
         <div className="card-description">
-          {season.series.title} ({episodeText})
+          {season.series.title} ({episodeCount})
         </div>
       </div>
     );
