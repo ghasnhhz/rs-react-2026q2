@@ -1,31 +1,33 @@
-import { Component } from 'react';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import Main from './components/Main';
-import ErrorBoundary from './components/ErrorBoundary';
+import About from './pages/About';
+import NotFound from './pages/NotFound';
 
-class App extends Component<object, { lastSearch: string }> {
-  constructor(props: object) {
-    super(props);
-    const saved = localStorage.getItem("searchTerm") || "";
-    this.state = { lastSearch: saved};
-  }
+function App() {
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  handleSearch = (searchTerm: string) => {
-    const cleanTerm = searchTerm.trim();
-
-    if (cleanTerm === this.state.lastSearch) return;
-
-    this.setState({ lastSearch: cleanTerm });
+  const handleSearch = (term: string) => {
+    const cleanTerm = term.trim();
+    if (cleanTerm === searchTerm) return;
+    setSearchTerm(cleanTerm);
   };
 
-  render() {
-    return (
+  return (
+    <Router>
       <ErrorBoundary>
-        <Header onSubmitted={this.handleSearch} />
-        <Main searchTerm={this.state.lastSearch} />
+        <Header onSubmitted={handleSearch} />
+        <Routes>
+          <Route path="/" element={<Main searchTerm={searchTerm} />} />
+          <Route path="/:page" element={<Main searchTerm={searchTerm} />} />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </ErrorBoundary>
-    );
-  }
+    </Router>
+  );
 }
 
 export default App;

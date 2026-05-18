@@ -1,53 +1,36 @@
-import { Component, type ChangeEvent } from 'react';
+import { type ChangeEvent } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import './Header.css';
 
 interface HeaderProps {
   onSubmitted: (text: string) => void;
 }
 
-type HeaderState = {
-  input: string;
-};
+function Header({ onSubmitted }: HeaderProps) {
+  const [input, setInput] = useLocalStorage('searchTerm', '');
 
-class Header extends Component<HeaderProps, HeaderState> {
-  constructor(props: HeaderProps) {
-    super(props);
-    this.state = { input: '' };
-  }
-
-  componentDidMount(): void {
-    const saved = localStorage.getItem('searchTerm');
-
-    if (saved) {
-      this.setState({ input: saved });
-    }
-  }
-
-  update = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({ input: e.target.value });
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
   };
 
-  handleButtonClick = () => {
-    const cleanTerm = this.state.input.trim();
-    localStorage.setItem('searchTerm', cleanTerm);
-    this.props.onSubmitted(cleanTerm);
+  const handleButtonClick = () => {
+    const cleanTerm = input.trim();
+    onSubmitted(cleanTerm);
   };
 
-  render() {
-    return (
-      <div className="header">
-        <input
-          type="text"
-          className="search-input"
-          onChange={this.update}
-          value={this.state.input}
-        />
-        <button className="search-button" onClick={this.handleButtonClick}>
-          Search
-        </button>
-      </div>
-    );
-  }
+  return (
+    <div className="header">
+      <input
+        type="text"
+        className="search-input"
+        onChange={handleInputChange}
+        value={input}
+      />
+      <button className="search-button" onClick={handleButtonClick}>
+        Search
+      </button>
+    </div>
+  );
 }
 
 export default Header;
