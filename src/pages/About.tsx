@@ -16,6 +16,29 @@ function About() {
         The application allows you to search and explore Star Trek seasons using the{' '}
         <strong>Star Trek API (STAPI)</strong>.
       </p>
+
+      <h2>Author</h2>
+      <p>
+        Developed by{' '}
+        <a
+          href="https://github.com/ghasnhhz"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          ghasnhhz
+        </a>
+        {' '}
+        (
+        <a
+          href="https://github.com/ghasnhhz/rs-react-2026q2"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          project repository
+        </a>
+        ).
+      </p>
+
       <h2>Features</h2>
       <ul>
         <li>Search for Star Trek seasons by title</li>
