@@ -239,9 +239,11 @@ describe('MainLayout Component', () => {
   });
 
   it('should close details when list panel is clicked', async () => {
-    global.fetch = vi.fn((url: string) => {
+    global.fetch = vi.fn(async (input) => {
+      const url = input.toString();
+  
       if (url.includes('season?uid')) {
-        return Promise.resolve({
+        return {
           ok: true,
           json: async () => ({
             season: {
@@ -251,11 +253,12 @@ describe('MainLayout Component', () => {
               numberOfEpisodes: 15,
             },
           }),
-        } as Response);
+        } as Response;
       }
-      return Promise.resolve(mockResponse as Response);
-    });
-
+  
+      return mockResponse as Response;
+    }) as typeof fetch;
+  
     render(
       <MemoryRouter initialEntries={['/details/1']}>
         <Routes>
@@ -265,21 +268,23 @@ describe('MainLayout Component', () => {
         </Routes>
       </MemoryRouter>
     );
-
+  
     await waitFor(() => {
       expect(screen.getByLabelText('Season details')).toBeInTheDocument();
     });
-
+  
     fireEvent.click(screen.getByLabelText('Close details panel'));
-
+  
     await waitFor(() => {
       expect(screen.queryByLabelText('Season details')).not.toBeInTheDocument();
     });
   });
-
+  
   it('should close details on Enter key in list panel', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
-
+    global.fetch = vi.fn(async () => {
+      return mockResponse as Response;
+    }) as typeof fetch;
+  
     render(
       <MemoryRouter initialEntries={['/details/1']}>
         <Routes>
@@ -289,13 +294,13 @@ describe('MainLayout Component', () => {
         </Routes>
       </MemoryRouter>
     );
-
+  
     await waitFor(() => {
       expect(screen.getByLabelText('Close details panel')).toBeInTheDocument();
     });
-
+  
     fireEvent.keyDown(screen.getByLabelText('Close details panel'), { key: 'Enter' });
-
+  
     await waitFor(() => {
       expect(screen.queryByLabelText('Season details')).not.toBeInTheDocument();
     });
