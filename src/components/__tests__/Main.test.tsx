@@ -1,9 +1,23 @@
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
-import Main from '../Main';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import MainLayout from '../MainLayout';
+import SeasonDetails from '../SeasonDetails';
 import ErrorBoundary from '../ErrorBoundary';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-describe('Main Component', () => {
+function renderMain(searchTerm = '') {
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <Routes>
+        <Route path="/" element={<MainLayout searchTerm={searchTerm} />}>
+          <Route path="details/:detailsId" element={<SeasonDetails />} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+describe('MainLayout Component', () => {
   const mockSeasons = [
     {
       uid: '1',
@@ -33,7 +47,7 @@ describe('Main Component', () => {
     const mockFetch = vi.fn((): Promise<Response> => new Promise(() => {}));
     global.fetch = mockFetch;
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -43,7 +57,7 @@ describe('Main Component', () => {
   it('should render correct number of items when data is provided', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
@@ -58,7 +72,7 @@ describe('Main Component', () => {
     };
     global.fetch = vi.fn(() => Promise.resolve(errorResponse as Response));
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.getByText(/Error: 500/)).toBeInTheDocument();
@@ -73,7 +87,7 @@ describe('Main Component', () => {
     };
     global.fetch = vi.fn(() => Promise.resolve(errorResponse as Response));
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.getByText(/Error: 404/)).toBeInTheDocument();
@@ -88,7 +102,7 @@ describe('Main Component', () => {
     };
     global.fetch = vi.fn(() => Promise.resolve(errorResponse as Response));
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.getByText(/Error: 502/)).toBeInTheDocument();
@@ -98,7 +112,15 @@ describe('Main Component', () => {
   it('should fetch data when searchTerm prop changes', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
-    const { rerender } = render(<Main searchTerm="" />);
+    const { rerender } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<MainLayout searchTerm="" />}>
+            <Route path="details/:detailsId" element={<SeasonDetails />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
@@ -107,7 +129,15 @@ describe('Main Component', () => {
     vi.clearAllMocks();
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
-    rerender(<Main searchTerm="Discovery" />);
+    rerender(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<MainLayout searchTerm="Discovery" />}>
+            <Route path="details/:detailsId" element={<SeasonDetails />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
@@ -117,7 +147,7 @@ describe('Main Component', () => {
   it('should hide loading state after data is fetched', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
@@ -133,13 +163,13 @@ describe('Main Component', () => {
     };
     global.fetch = vi.fn(() => Promise.resolve(emptyResponse as Response));
 
-    render(<Main searchTerm="" />);
+    renderMain();
 
     await waitFor(() => {
       expect(screen.getByText('No results found')).toBeInTheDocument();
     });
   });
-    
+
   it('should throw error when error button is clicked', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -147,7 +177,13 @@ describe('Main Component', () => {
 
     render(
       <ErrorBoundary>
-        <Main searchTerm="" />
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<MainLayout searchTerm="" />}>
+              <Route path="details/:detailsId" element={<SeasonDetails />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
       </ErrorBoundary>
     );
 
@@ -162,5 +198,106 @@ describe('Main Component', () => {
     expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument();
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('should show pagination when there are more than 10 results', async () => {
+    const manySeasons = Array.from({ length: 11 }, (_, index) => ({
+      uid: String(index + 1),
+      title: `Season ${index + 1}`,
+      series: { uid: '101', title: 'Star Trek: Discovery' },
+      numberOfEpisodes: 10,
+    }));
+
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({ seasons: manySeasons }),
+      } as Response)
+    );
+
+    renderMain();
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    });
+  });
+
+  it('should navigate to details when a card is selected', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+
+    renderMain();
+
+    await waitFor(() => {
+      expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /DIS Season 1/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Season details')).toBeInTheDocument();
+    });
+  });
+
+  it('should close details when list panel is clicked', async () => {
+    global.fetch = vi.fn((url: string) => {
+      if (url.includes('season?uid')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            season: {
+              uid: '1',
+              title: 'DIS Season 1',
+              series: { uid: '101', title: 'Star Trek: Discovery' },
+              numberOfEpisodes: 15,
+            },
+          }),
+        } as Response);
+      }
+      return Promise.resolve(mockResponse as Response);
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/details/1']}>
+        <Routes>
+          <Route path="/" element={<MainLayout searchTerm="" />}>
+            <Route path="details/:detailsId" element={<SeasonDetails />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Season details')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByLabelText('Close details panel'));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Season details')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should close details on Enter key in list panel', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+
+    render(
+      <MemoryRouter initialEntries={['/details/1']}>
+        <Routes>
+          <Route path="/" element={<MainLayout searchTerm="" />}>
+            <Route path="details/:detailsId" element={<SeasonDetails />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Close details panel')).toBeInTheDocument();
+    });
+
+    fireEvent.keyDown(screen.getByLabelText('Close details panel'), { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Season details')).not.toBeInTheDocument();
+    });
   });
 });

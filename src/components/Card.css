@@ -16,6 +16,16 @@
     transform: scale(1.01);
     box-shadow: 0 8px 24px rgba(42, 82, 152, 0.2);
   }
+
+  .card--clickable {
+    cursor: pointer;
+  }
+
+  .card--selected {
+    border-color: #2a5298;
+    box-shadow: 0 4px 16px rgba(42, 82, 152, 0.25);
+    background: linear-gradient(135deg, #e8edf5 0%, #b8c9e0 100%);
+  }
   
   .card-name {
     font-weight: 700;

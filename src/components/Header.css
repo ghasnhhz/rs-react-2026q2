@@ -5,6 +5,31 @@
     margin-bottom: 30px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .header-nav {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2a5298;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #1e3c72;
+    text-decoration: underline;
+  }
+
+  .header-search {
+    display: flex;
     gap: 15px;
     flex-wrap: wrap;
     align-items: center;
@@ -50,14 +75,17 @@
   
   @media (max-width: 768px) {
     .header {
-      flex-direction: column;
       padding: 20px;
     }
-  
+
+    .header-search {
+      flex-direction: column;
+    }
+
     .search-input {
       width: 100%;
     }
-  
+
     .search-button {
       width: 100%;
     }

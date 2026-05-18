@@ -53,6 +53,26 @@ describe('App Component', () => {
     expect(input.value).toBe('Discovery');
   });
 
+  it('should fetch with saved search term on initial load', async () => {
+    localStorage.setItem('searchTerm', 'DIS Season 1');
+    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    const body = options.body as string;
+    expect(new URLSearchParams(body).get('title')).toBe('DIS Season 1');
+  });
+
   it('should pass search term to Main when Header is submitted', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
@@ -98,6 +118,16 @@ describe('App Component', () => {
     expect(asMocked(global.fetch).mock.calls.length).toBe(callCount);
   });
 
+  it('should render navigation link to About page', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    expect(screen.getByRole('link', { name: /about/i })).toHaveAttribute('href', '/about');
+  });
+
   it('should display Main component with search results', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
@@ -108,5 +138,17 @@ describe('App Component', () => {
     await waitFor(() => {
       expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
     });
+  });
+
+  it('should display 404 page for unknown routes', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+
+    await act(async () => {
+      window.history.pushState({}, '', '/unknown-route');
+      render(<App />);
+    });
+
+    expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /return to home/i })).toBeInTheDocument();
   });
 });

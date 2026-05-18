@@ -3,12 +3,32 @@
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    min-height: 400px;
-    max-height: 500px;
-    overflow-y: auto;
+    min-height: 520px;
+    max-height: min(720px, calc(100vh - 180px));
     position: relative;
     display: flex;
     flex-direction: column;
+  }
+
+  .main--split {
+    flex-direction: row;
+    gap: 20px;
+    max-width: none;
+    overflow: visible;
+    min-height: 560px;
+  }
+
+  .main-list-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .main--split .main-list-panel {
+    cursor: pointer;
   }
   
   .main::-webkit-scrollbar {

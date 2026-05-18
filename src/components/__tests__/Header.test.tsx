@@ -1,9 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import Header from '../Header';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe("Header Component", () => {
     const mockOnSubmitted = vi.fn();
+
+    const renderHeader = () =>
+        render(
+            <MemoryRouter>
+                <Header onSubmitted={mockOnSubmitted} />
+            </MemoryRouter>
+        );
 
     beforeEach(() => {
         localStorage.clear();
@@ -11,7 +19,7 @@ describe("Header Component", () => {
     });
 
     it("should render search input and button", () => {
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
 
         expect(screen.getByRole('textbox')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
@@ -20,21 +28,21 @@ describe("Header Component", () => {
     it("should load saved search term from localStorage on mount", () => {
         localStorage.setItem("searchTerm", "Discovery");
 
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
 
         const input = screen.getByRole('textbox') as HTMLInputElement;
         expect(input.value).toBe('Discovery');
     });
 
     it("should load null from localStorage when no saved term exists", () => { 
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
         
         const input = screen.getByRole('textbox') as HTMLInputElement;
         expect(input.value).toBe('');
     });
 
     it("should update input value when user types", () => {
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
 
         const input = screen.getByRole('textbox');
         fireEvent.change(input, { target: { value: 'Voyager' } });
@@ -42,7 +50,7 @@ describe("Header Component", () => {
     });
 
     it('should call onSubmitted callback when button is clicked', () => {
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
 
         const input = screen.getByRole('textbox');
         const button = screen.getByRole('button', { name: /search/i });
@@ -54,7 +62,7 @@ describe("Header Component", () => {
     });
 
     it('should save search term to localStorage when button is clicked', () => {
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
 
         const input = screen.getByRole('textbox');
         const button = screen.getByRole('button', { name: /search/i });
@@ -66,7 +74,7 @@ describe("Header Component", () => {
     });
 
     it('should trim whitespace before saving', () => {
-        render(<Header onSubmitted={mockOnSubmitted} />);
+        renderHeader();
 
         const input = screen.getByRole('textbox');
         const button = screen.getByRole('button', { name: /search/i });
@@ -75,5 +83,22 @@ describe("Header Component", () => {
         fireEvent.click(button);
 
         expect(mockOnSubmitted).toHaveBeenCalledWith("Discovery");
+        expect(localStorage.getItem("searchTerm")).toBe("Discovery");
+        expect((input as HTMLInputElement).value).toBe("Discovery");
+    });
+
+    it('should not save to localStorage while typing', () => {
+        renderHeader();
+
+        const input = screen.getByRole('textbox');
+        fireEvent.change(input, { target: { value: 'Picard' } });
+
+        expect(localStorage.getItem('searchTerm')).toBeNull();
+    });
+
+    it('should render navigation link to About page', () => {
+        renderHeader();
+
+        expect(screen.getByRole('link', { name: /about/i })).toHaveAttribute('href', '/about');
     });
 });

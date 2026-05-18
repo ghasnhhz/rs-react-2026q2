@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Card from '../Card';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 
 describe('Card Component', () => {
@@ -35,5 +35,30 @@ describe('Card Component', () => {
         render(<Card key={seasonNoEpisodes.uid} season={seasonNoEpisodes} />);
     
         expect(screen.getByText(/N\/A/)).toBeInTheDocument();
+    });
+
+    it('should call onSelect when card is clicked', () => {
+        const onSelect = vi.fn();
+        render(<Card season={season} onSelect={onSelect} />);
+
+        fireEvent.click(screen.getByRole('button'));
+        expect(onSelect).toHaveBeenCalledWith(season.uid);
+    });
+
+    it('should call onSelect on Enter or Space key press', () => {
+        const onSelect = vi.fn();
+        render(<Card season={season} onSelect={onSelect} isSelected />);
+
+        const card = screen.getByRole('button');
+        fireEvent.keyDown(card, { key: 'Enter' });
+        fireEvent.keyDown(card, { key: ' ' });
+
+        expect(onSelect).toHaveBeenCalledTimes(2);
+    });
+
+    it('should apply selected styles when isSelected is true', () => {
+        const { container } = render(<Card season={season} onSelect={vi.fn()} isSelected />);
+
+        expect(container.firstChild).toHaveClass('card--selected');
     });
 });
