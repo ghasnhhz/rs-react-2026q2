@@ -1,8 +1,8 @@
 .card {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-card);
     padding: 20px;
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-border);
     transition: all 0.4s ease;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
     display: flex;
@@ -11,7 +11,7 @@
     margin-left: 5px;
     margin-right: 5px;
   }
-  
+
   .card:hover {
     transform: scale(1.01);
     box-shadow: 0 8px 24px rgba(42, 82, 152, 0.2);
@@ -22,19 +22,27 @@
   }
 
   .card--selected {
-    border-color: #2a5298;
+    border-color: var(--color-accent);
     box-shadow: 0 4px 16px rgba(42, 82, 152, 0.25);
-    background: linear-gradient(135deg, #e8edf5 0%, #b8c9e0 100%);
+    background: var(--bg-card-selected);
   }
-  
+
   .card-name {
     font-weight: 700;
-    color: #1e3c72;
+    color: var(--color-text-primary);
     min-width: 200px;
   }
-  
+
   .card-description {
     flex: 1;
     margin-left: 20px;
-    color: #555;
+    color: var(--color-text-secondary);
+  }
+
+  .card-checkbox {
+    margin-right: 12px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
   }

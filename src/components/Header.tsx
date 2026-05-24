@@ -1,6 +1,7 @@
 import { type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { SEARCH_TERM_KEY, useLocalStorage } from '../hooks/useLocalStorage';
+import ThemeSwitcher from './ThemeSwitcher';
 import './Header.css';
 
 interface HeaderProps {
@@ -45,6 +46,7 @@ function Header({ onSubmitted }: HeaderProps) {
           Search
         </button>
       </div>
+      <ThemeSwitcher />
     </header>
   );
 }
