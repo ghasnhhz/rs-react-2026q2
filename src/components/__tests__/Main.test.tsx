@@ -1,20 +1,33 @@
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import MainLayout from '../MainLayout';
 import SeasonDetails from '../SeasonDetails';
 import ErrorBoundary from '../ErrorBoundary';
+import selectedItemsReducer from '../../store/slices/selectedItemsSlice';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-function renderMain(searchTerm = '') {
-  return render(
-    <MemoryRouter initialEntries={['/']}>
-      <Routes>
-        <Route path="/" element={<MainLayout searchTerm={searchTerm} />}>
-          <Route path="details/:detailsId" element={<SeasonDetails />} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
-  );
+function makeStore() {
+  return configureStore({ reducer: { selectedItems: selectedItemsReducer } });
+}
+
+function renderMain(searchTerm = '', initialEntries = ['/']) {
+  const store = makeStore();
+  return {
+    store,
+    ...render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={initialEntries}>
+          <Routes>
+            <Route path="/" element={<MainLayout searchTerm={searchTerm} />}>
+              <Route path="details/:detailsId" element={<SeasonDetails />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    ),
+  };
 }
 
 describe('MainLayout Component', () => {
@@ -22,10 +35,7 @@ describe('MainLayout Component', () => {
     {
       uid: '1',
       title: 'DIS Season 1',
-      series: {
-        uid: '101',
-        title: 'Star Trek: Discovery',
-      },
+      series: { uid: '101', title: 'Star Trek: Discovery' },
       numberOfEpisodes: 15,
     },
   ];
@@ -44,11 +54,8 @@ describe('MainLayout Component', () => {
   });
 
   it('should show loading state while fetching data', async () => {
-    const mockFetch = vi.fn((): Promise<Response> => new Promise(() => {}));
-    global.fetch = mockFetch;
-
+    global.fetch = vi.fn((): Promise<Response> => new Promise(() => {}));
     renderMain();
-
     await waitFor(() => {
       expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
@@ -56,54 +63,37 @@ describe('MainLayout Component', () => {
 
   it('should render correct number of items when data is provided', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
-
     renderMain();
-
     await waitFor(() => {
       expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
     });
   });
 
   it('should display error message when API call fails', async () => {
-    const errorResponse = {
-      ok: false,
-      status: 500,
-      json: async () => ({}),
-    };
-    global.fetch = vi.fn(() => Promise.resolve(errorResponse as Response));
-
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: false, status: 500, json: async () => ({}) } as Response)
+    );
     renderMain();
-
     await waitFor(() => {
       expect(screen.getByText(/Error: 500/)).toBeInTheDocument();
     });
   });
 
   it('should show appropriate error for 4xx status codes', async () => {
-    const errorResponse = {
-      ok: false,
-      status: 404,
-      json: async () => ({}),
-    };
-    global.fetch = vi.fn(() => Promise.resolve(errorResponse as Response));
-
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response)
+    );
     renderMain();
-
     await waitFor(() => {
       expect(screen.getByText(/Error: 404/)).toBeInTheDocument();
     });
   });
 
   it('should show appropriate error for 5xx status codes', async () => {
-    const errorResponse = {
-      ok: false,
-      status: 502,
-      json: async () => ({}),
-    };
-    global.fetch = vi.fn(() => Promise.resolve(errorResponse as Response));
-
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: false, status: 502, json: async () => ({}) } as Response)
+    );
     renderMain();
-
     await waitFor(() => {
       expect(screen.getByText(/Error: 502/)).toBeInTheDocument();
     });
@@ -111,15 +101,18 @@ describe('MainLayout Component', () => {
 
   it('should fetch data when searchTerm prop changes', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    const store = makeStore();
 
     const { rerender } = render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<MainLayout searchTerm="" />}>
-            <Route path="details/:detailsId" element={<SeasonDetails />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<MainLayout searchTerm="" />}>
+              <Route path="details/:detailsId" element={<SeasonDetails />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -130,13 +123,15 @@ describe('MainLayout Component', () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
     rerender(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<MainLayout searchTerm="Discovery" />}>
-            <Route path="details/:detailsId" element={<SeasonDetails />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<MainLayout searchTerm="Discovery" />}>
+              <Route path="details/:detailsId" element={<SeasonDetails />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -146,25 +141,18 @@ describe('MainLayout Component', () => {
 
   it('should hide loading state after data is fetched', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
-
     renderMain();
-
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
-
     expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
   });
 
   it('should display "no results" when seasons array is empty', async () => {
-    const emptyResponse = {
-      ok: true,
-      json: async () => ({ seasons: [] }),
-    };
-    global.fetch = vi.fn(() => Promise.resolve(emptyResponse as Response));
-
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: async () => ({ seasons: [] }) } as Response)
+    );
     renderMain();
-
     await waitFor(() => {
       expect(screen.getByText('No results found')).toBeInTheDocument();
     });
@@ -172,19 +160,20 @@ describe('MainLayout Component', () => {
 
   it('should throw error when error button is clicked', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
 
     render(
-      <ErrorBoundary>
-        <MemoryRouter initialEntries={['/']}>
-          <Routes>
-            <Route path="/" element={<MainLayout searchTerm="" />}>
-              <Route path="details/:detailsId" element={<SeasonDetails />} />
-            </Route>
-          </Routes>
-        </MemoryRouter>
-      </ErrorBoundary>
+      <Provider store={makeStore()}>
+        <ErrorBoundary>
+          <MemoryRouter initialEntries={['/']}>
+            <Routes>
+              <Route path="/" element={<MainLayout searchTerm="" />}>
+                <Route path="details/:detailsId" element={<SeasonDetails />} />
+              </Route>
+            </Routes>
+          </MemoryRouter>
+        </ErrorBoundary>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -196,7 +185,6 @@ describe('MainLayout Component', () => {
     });
 
     expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument();
-
     consoleErrorSpy.mockRestore();
   });
 
@@ -209,10 +197,7 @@ describe('MainLayout Component', () => {
     }));
 
     global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: async () => ({ seasons: manySeasons }),
-      } as Response)
+      Promise.resolve({ ok: true, json: async () => ({ seasons: manySeasons }) } as Response)
     );
 
     renderMain();
@@ -224,7 +209,6 @@ describe('MainLayout Component', () => {
 
   it('should navigate to details when a card is selected', async () => {
     global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
-
     renderMain();
 
     await waitFor(() => {
@@ -241,7 +225,6 @@ describe('MainLayout Component', () => {
   it('should close details when list panel is clicked', async () => {
     global.fetch = vi.fn(async (input) => {
       const url = input.toString();
-  
       if (url.includes('season?uid')) {
         return {
           ok: true,
@@ -255,54 +238,53 @@ describe('MainLayout Component', () => {
           }),
         } as Response;
       }
-  
       return mockResponse as Response;
     }) as typeof fetch;
-  
-    render(
-      <MemoryRouter initialEntries={['/details/1']}>
-        <Routes>
-          <Route path="/" element={<MainLayout searchTerm="" />}>
-            <Route path="details/:detailsId" element={<SeasonDetails />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    );
-  
+
+    renderMain('', ['/details/1']);
+
     await waitFor(() => {
       expect(screen.getByLabelText('Season details')).toBeInTheDocument();
     });
-  
+
     fireEvent.click(screen.getByLabelText('Close details panel'));
-  
+
     await waitFor(() => {
       expect(screen.queryByLabelText('Season details')).not.toBeInTheDocument();
     });
   });
-  
+
   it('should close details on Enter key in list panel', async () => {
-    global.fetch = vi.fn(async () => {
-      return mockResponse as Response;
-    }) as typeof fetch;
-  
-    render(
-      <MemoryRouter initialEntries={['/details/1']}>
-        <Routes>
-          <Route path="/" element={<MainLayout searchTerm="" />}>
-            <Route path="details/:detailsId" element={<SeasonDetails />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    );
-  
+    global.fetch = vi.fn(async () => mockResponse as Response) as typeof fetch;
+
+    renderMain('', ['/details/1']);
+
     await waitFor(() => {
       expect(screen.getByLabelText('Close details panel')).toBeInTheDocument();
     });
-  
+
     fireEvent.keyDown(screen.getByLabelText('Close details panel'), { key: 'Enter' });
-  
+
     await waitFor(() => {
       expect(screen.queryByLabelText('Season details')).not.toBeInTheDocument();
     });
+  });
+
+  it('should toggle item selection when checkbox is clicked', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    const { store } = renderMain();
+
+    await waitFor(() => {
+      expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
+    });
+
+    const checkbox = screen.getByRole('checkbox', { name: /select DIS Season 1/i });
+    fireEvent.click(checkbox);
+
+    expect(store.getState().selectedItems.items).toHaveLength(1);
+    expect(store.getState().selectedItems.items[0].uid).toBe('1');
+
+    fireEvent.click(checkbox);
+    expect(store.getState().selectedItems.items).toHaveLength(0);
   });
 });

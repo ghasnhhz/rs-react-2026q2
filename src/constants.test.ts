@@ -6,7 +6,7 @@ describe('constants', () => {
     expect(ITEMS_PER_PAGE).toBe(10);
     expect(SEASON_SEARCH_URL).toContain('season/search');
     expect(seasonDetailsUrl('abc123')).toBe(
-      'http://stapi.co/api/v1/rest/season?uid=abc123'
+      'https://stapi.co/api/v1/rest/season?uid=abc123'
     );
   });
 });

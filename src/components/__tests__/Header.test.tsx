@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Header from '../Header';
+import { ThemeProvider } from '../../context/ThemeProvider';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe("Header Component", () => {
@@ -8,9 +9,11 @@ describe("Header Component", () => {
 
     const renderHeader = () =>
         render(
-            <MemoryRouter>
-                <Header onSubmitted={mockOnSubmitted} />
-            </MemoryRouter>
+            <ThemeProvider>
+                <MemoryRouter>
+                    <Header onSubmitted={mockOnSubmitted} />
+                </MemoryRouter>
+            </ThemeProvider>
         );
 
     beforeEach(() => {
@@ -34,9 +37,9 @@ describe("Header Component", () => {
         expect(input.value).toBe('Discovery');
     });
 
-    it("should load null from localStorage when no saved term exists", () => { 
+    it("should load null from localStorage when no saved term exists", () => {
         renderHeader();
-        
+
         const input = screen.getByRole('textbox') as HTMLInputElement;
         expect(input.value).toBe('');
     });
@@ -100,5 +103,10 @@ describe("Header Component", () => {
         renderHeader();
 
         expect(screen.getByRole('link', { name: /about/i })).toHaveAttribute('href', '/about');
+    });
+
+    it('should render the theme toggle button', () => {
+        renderHeader();
+        expect(screen.getByRole('button', { name: /switch to/i })).toBeInTheDocument();
     });
 });
