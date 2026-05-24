@@ -5,10 +5,12 @@ import './CardList.css';
 interface CardListProps {
   seasons: Season[];
   selectedId?: string;
+  selectedItemIds?: string[];
   onSelect?: (uid: string) => void;
+  onCheckboxChange?: (season: Season) => void;
 }
 
-function CardList({ seasons, selectedId, onSelect }: CardListProps) {
+function CardList({ seasons, selectedItemIds, onSelect, onCheckboxChange }: CardListProps) {
   if (seasons.length === 0) {
     return <div className="no-results">No results found</div>;
   }
@@ -19,8 +21,9 @@ function CardList({ seasons, selectedId, onSelect }: CardListProps) {
         <Card
           key={season.uid}
           season={season}
-          isSelected={selectedId === season.uid}
+          isSelected={selectedItemIds?.includes(season.uid) ?? false}
           onSelect={onSelect}
+          onCheckboxChange={onCheckboxChange}
         />
       ))}
     </div>

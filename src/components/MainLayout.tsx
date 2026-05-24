@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { Outlet, useMatch, useNavigate, useSearchParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from '../store/store';
+import { toggleItem } from '../store/slices/selectedItemsSlice';
+import type { Season } from '../types/season';
 import { ITEMS_PER_PAGE } from '../constants';
 import { useSeasons } from '../hooks/useSeasons';
 import { useUrlPagination } from '../hooks/useUrlPagination';
@@ -20,6 +24,10 @@ function MainLayout({ searchTerm }: MainLayoutProps) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [shouldThrowError, setShouldThrowError] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const selectedItems = useSelector((state: RootState) => state.selectedItems.items);
+  const selectedItemIds = selectedItems.map((item) => item.uid);
+  const handleCheckboxChange = (season: Season) => dispatch(toggleItem(season));
 
   const visibleSeasons = paginatedItems(results);
   const isDetailsOpen = Boolean(detailsId);
@@ -70,7 +78,9 @@ function MainLayout({ searchTerm }: MainLayoutProps) {
             <CardList
               seasons={visibleSeasons}
               selectedId={detailsId}
+              selectedItemIds={selectedItemIds}
               onSelect={handleCardSelect}
+              onCheckboxChange={handleCheckboxChange}
             />
             <Pagination
               currentPage={currentPage}
