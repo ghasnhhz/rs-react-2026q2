@@ -1,5 +1,7 @@
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import App from '../../App';
+import { store } from '../../store/store';
+import { seasonsApi } from '../../store/api/seasonsApi';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('App Component', () => {
@@ -15,23 +17,26 @@ describe('App Component', () => {
     },
   ];
 
-  const mockResponse = {
-    ok: true,
-    json: async () => ({ seasons: mockSeasons }),
-  };
+  const jsonResponse = (body: unknown, status = 200): Response =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
 
   beforeEach(() => {
     localStorage.clear();
     global.fetch = vi.fn();
+    store.dispatch(seasonsApi.util.resetApiState());
   });
 
   afterEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(seasonsApi.util.resetApiState());
   });
 
   it('should render Header and Main components', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -43,7 +48,7 @@ describe('App Component', () => {
 
   it('should load saved search term from localStorage on mount', async () => {
     localStorage.setItem('searchTerm', 'Discovery');
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -55,7 +60,7 @@ describe('App Component', () => {
 
   it('should fetch with saved search term on initial load', async () => {
     localStorage.setItem('searchTerm', 'DIS Season 1');
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -65,16 +70,15 @@ describe('App Component', () => {
       expect(global.fetch).toHaveBeenCalled();
     });
 
-    const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
-      string,
-      RequestInit,
+    const [request] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      Request,
     ];
-    const body = options.body as string;
+    const body = await request.text();
     expect(new URLSearchParams(body).get('title')).toBe('DIS Season 1');
   });
 
   it('should pass search term to Main when Header is submitted', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -95,7 +99,7 @@ describe('App Component', () => {
 
   it('should not fetch if search term is unchanged', async () => {
     localStorage.setItem('searchTerm', 'Discovery');
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -119,7 +123,7 @@ describe('App Component', () => {
   });
 
   it('should render navigation link to About page', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -129,7 +133,7 @@ describe('App Component', () => {
   });
 
   it('should display Main component with search results', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       render(<App />);
@@ -141,7 +145,7 @@ describe('App Component', () => {
   });
 
   it('should display 404 page for unknown routes', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     await act(async () => {
       window.history.pushState({}, '', '/unknown-route');

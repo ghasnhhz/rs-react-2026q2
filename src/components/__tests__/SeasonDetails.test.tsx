@@ -1,15 +1,35 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import SeasonDetails from '../SeasonDetails';
+import { seasonsApi } from '../../store/api/seasonsApi';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+function makeStore() {
+  return configureStore({
+    reducer: { [seasonsApi.reducerPath]: seasonsApi.reducer },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(seasonsApi.middleware),
+  });
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 
 function renderSeasonDetails(initialEntry = '/details/1') {
   return render(
-    <MemoryRouter initialEntries={[initialEntry]}>
-      <Routes>
-        <Route path="/details/:detailsId" element={<SeasonDetails />} />
-      </Routes>
-    </MemoryRouter>
+    <Provider store={makeStore()}>
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <Routes>
+          <Route path="/details/:detailsId" element={<SeasonDetails />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
   );
 }
 
@@ -42,12 +62,7 @@ describe('SeasonDetails Component', () => {
   });
 
   it('should display season details when fetch succeeds', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: async () => ({ season: mockSeason }),
-      } as Response)
-    );
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ season: mockSeason })));
 
     renderSeasonDetails();
 
@@ -62,13 +77,7 @@ describe('SeasonDetails Component', () => {
   });
 
   it('should display error when fetch fails', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: false,
-        status: 500,
-        json: async () => ({}),
-      } as Response)
-    );
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({}, 500)));
 
     renderSeasonDetails();
 
@@ -78,12 +87,7 @@ describe('SeasonDetails Component', () => {
   });
 
   it('should display not found when season is null', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: async () => ({ season: null }),
-      } as Response)
-    );
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ season: null })));
 
     renderSeasonDetails();
 
@@ -94,12 +98,11 @@ describe('SeasonDetails Component', () => {
 
   it('should show N/A when episode count is missing', async () => {
     global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: async () => ({
+      Promise.resolve(
+        jsonResponse({
           season: { ...mockSeason, numberOfEpisodes: null, episodes: [] },
-        }),
-      } as Response)
+        })
+      )
     );
 
     renderSeasonDetails();
@@ -110,20 +113,17 @@ describe('SeasonDetails Component', () => {
   });
 
   it('should navigate home when close button is clicked', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: async () => ({ season: mockSeason }),
-      } as Response)
-    );
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ season: mockSeason })));
 
     render(
-      <MemoryRouter initialEntries={['/details/1?page=2&details=1']}>
-        <Routes>
-          <Route path="/" element={<span>Home page</span>} />
-          <Route path="/details/:detailsId" element={<SeasonDetails />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={makeStore()}>
+        <MemoryRouter initialEntries={['/details/1?page=2&details=1']}>
+          <Routes>
+            <Route path="/" element={<span>Home page</span>} />
+            <Route path="/details/:detailsId" element={<SeasonDetails />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -134,6 +134,53 @@ describe('SeasonDetails Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Home page')).toBeInTheDocument();
+    });
+  });
+
+  it('should invalidate the cache and refetch when refresh is clicked', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ season: mockSeason })));
+
+    renderSeasonDetails();
+
+    await waitFor(() => {
+      expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('should show a refreshing state while refetching, then restore', async () => {
+    let resolveRefetch: () => void = () => {};
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ season: mockSeason }))
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveRefetch = () => resolve(jsonResponse({ season: mockSeason }));
+          })
+      );
+
+    renderSeasonDetails();
+
+    await waitFor(() => {
+      expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
+
+    const refreshingButton = await screen.findByRole('button', { name: /refreshing/i });
+    expect(refreshingButton).toBeDisabled();
+
+    resolveRefetch();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^refresh$/i })).toBeEnabled();
     });
   });
 });

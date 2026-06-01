@@ -6,10 +6,25 @@ import MainLayout from '../MainLayout';
 import SeasonDetails from '../SeasonDetails';
 import ErrorBoundary from '../ErrorBoundary';
 import selectedItemsReducer from '../../store/slices/selectedItemsSlice';
+import { seasonsApi } from '../../store/api/seasonsApi';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 function makeStore() {
-  return configureStore({ reducer: { selectedItems: selectedItemsReducer } });
+  return configureStore({
+    reducer: {
+      selectedItems: selectedItemsReducer,
+      [seasonsApi.reducerPath]: seasonsApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(seasonsApi.middleware),
+  });
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
 function renderMain(searchTerm = '', initialEntries = ['/']) {
@@ -40,11 +55,6 @@ describe('MainLayout Component', () => {
     },
   ];
 
-  const mockResponse = {
-    ok: true,
-    json: async () => ({ seasons: mockSeasons }),
-  };
-
   beforeEach(() => {
     global.fetch = vi.fn();
   });
@@ -62,7 +72,7 @@ describe('MainLayout Component', () => {
   });
 
   it('should render correct number of items when data is provided', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
     renderMain();
     await waitFor(() => {
       expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
@@ -71,7 +81,7 @@ describe('MainLayout Component', () => {
 
   it('should display error message when API call fails', async () => {
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: false, status: 500, json: async () => ({}) } as Response)
+      Promise.resolve(jsonResponse({}, 500))
     );
     renderMain();
     await waitFor(() => {
@@ -81,7 +91,7 @@ describe('MainLayout Component', () => {
 
   it('should show appropriate error for 4xx status codes', async () => {
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response)
+      Promise.resolve(jsonResponse({}, 404))
     );
     renderMain();
     await waitFor(() => {
@@ -91,7 +101,7 @@ describe('MainLayout Component', () => {
 
   it('should show appropriate error for 5xx status codes', async () => {
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: false, status: 502, json: async () => ({}) } as Response)
+      Promise.resolve(jsonResponse({}, 502))
     );
     renderMain();
     await waitFor(() => {
@@ -100,7 +110,7 @@ describe('MainLayout Component', () => {
   });
 
   it('should fetch data when searchTerm prop changes', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
     const store = makeStore();
 
     const { rerender } = render(
@@ -120,7 +130,7 @@ describe('MainLayout Component', () => {
     });
 
     vi.clearAllMocks();
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     rerender(
       <Provider store={store}>
@@ -140,7 +150,7 @@ describe('MainLayout Component', () => {
   });
 
   it('should hide loading state after data is fetched', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
     renderMain();
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
@@ -150,7 +160,7 @@ describe('MainLayout Component', () => {
 
   it('should display "no results" when seasons array is empty', async () => {
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: async () => ({ seasons: [] }) } as Response)
+      Promise.resolve(jsonResponse({ seasons: [] }))
     );
     renderMain();
     await waitFor(() => {
@@ -160,7 +170,7 @@ describe('MainLayout Component', () => {
 
   it('should throw error when error button is clicked', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
 
     render(
       <Provider store={makeStore()}>
@@ -197,7 +207,7 @@ describe('MainLayout Component', () => {
     }));
 
     global.fetch = vi.fn(() =>
-      Promise.resolve({ ok: true, json: async () => ({ seasons: manySeasons }) } as Response)
+      Promise.resolve(jsonResponse({ seasons: manySeasons }))
     );
 
     renderMain();
@@ -208,7 +218,7 @@ describe('MainLayout Component', () => {
   });
 
   it('should navigate to details when a card is selected', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
     renderMain();
 
     await waitFor(() => {
@@ -226,19 +236,16 @@ describe('MainLayout Component', () => {
     global.fetch = vi.fn(async (input) => {
       const url = input.toString();
       if (url.includes('season?uid')) {
-        return {
-          ok: true,
-          json: async () => ({
-            season: {
-              uid: '1',
-              title: 'DIS Season 1',
-              series: { uid: '101', title: 'Star Trek: Discovery' },
-              numberOfEpisodes: 15,
-            },
-          }),
-        } as Response;
+        return jsonResponse({
+          season: {
+            uid: '1',
+            title: 'DIS Season 1',
+            series: { uid: '101', title: 'Star Trek: Discovery' },
+            numberOfEpisodes: 15,
+          },
+        });
       }
-      return mockResponse as Response;
+      return jsonResponse({ seasons: mockSeasons });
     }) as typeof fetch;
 
     renderMain('', ['/details/1']);
@@ -255,7 +262,7 @@ describe('MainLayout Component', () => {
   });
 
   it('should close details on Enter key in list panel', async () => {
-    global.fetch = vi.fn(async () => mockResponse as Response) as typeof fetch;
+    global.fetch = vi.fn(async () => jsonResponse({ seasons: mockSeasons })) as typeof fetch;
 
     renderMain('', ['/details/1']);
 
@@ -271,7 +278,7 @@ describe('MainLayout Component', () => {
   });
 
   it('should toggle item selection when checkbox is clicked', async () => {
-    global.fetch = vi.fn(() => Promise.resolve(mockResponse as Response));
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
     const { store } = renderMain();
 
     await waitFor(() => {
@@ -286,5 +293,51 @@ describe('MainLayout Component', () => {
 
     fireEvent.click(checkbox);
     expect(store.getState().selectedItems.items).toHaveLength(0);
+  });
+
+  it('should invalidate the cache and refetch when refresh is clicked', async () => {
+    global.fetch = vi.fn(() => Promise.resolve(jsonResponse({ seasons: mockSeasons })));
+    renderMain();
+
+    await waitFor(() => {
+      expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('should show a refreshing state while refetching, then restore', async () => {
+    let resolveRefetch: () => void = () => {};
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ seasons: mockSeasons }))
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveRefetch = () => resolve(jsonResponse({ seasons: mockSeasons }));
+          })
+      );
+
+    renderMain();
+
+    await waitFor(() => {
+      expect(screen.getByText('DIS Season 1')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
+
+    const refreshingButton = await screen.findByRole('button', { name: /refreshing/i });
+    expect(refreshingButton).toBeDisabled();
+
+    resolveRefetch();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^refresh$/i })).toBeEnabled();
+    });
   });
 });
