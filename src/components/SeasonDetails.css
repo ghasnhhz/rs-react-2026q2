@@ -33,6 +33,35 @@
   background: #f0f4f8;
 }
 
+.season-details-refresh {
+  position: absolute;
+  top: 14px;
+  right: 52px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: white;
+  background: #2a5298;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.season-details-refresh:hover {
+  background: #1e3c72;
+  transform: scale(1.05);
+}
+
+.season-details-refresh:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.season-details-refresh:disabled:hover {
+  background: #2a5298;
+  transform: none;
+}
+
 .season-details-loading {
   display: flex;
   align-items: center;

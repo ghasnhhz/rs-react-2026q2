@@ -1,12 +1,29 @@
+import { skipToken } from '@reduxjs/toolkit/query';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useSeasonDetails } from '../hooks/useSeasonDetails';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../store/store';
+import { seasonsApi, useGetSeasonDetailsQuery } from '../store/api/seasonsApi';
+import { getErrorMessage } from '../utils/getErrorMessage';
 import './SeasonDetails.css';
 
 function SeasonDetails() {
   const { detailsId } = useParams<{ detailsId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loading, season, error } = useSeasonDetails(detailsId);
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    data: season,
+    isLoading: loading,
+    isFetching,
+    error,
+  } = useGetSeasonDetailsQuery(detailsId ?? skipToken);
+
+  const handleRefresh = () => {
+    if (!detailsId) return;
+    dispatch(
+      seasonsApi.util.invalidateTags([{ type: 'SeasonDetails', id: detailsId }])
+    );
+  };
 
   const handleClose = () => {
     const nextParams = new URLSearchParams(searchParams);
@@ -29,8 +46,18 @@ function SeasonDetails() {
       >
         ×
       </button>
+      <button
+        type="button"
+        className="season-details-refresh"
+        onClick={handleRefresh}
+        disabled={isFetching}
+      >
+        {isFetching ? 'Refreshing…' : 'Refresh'}
+      </button>
       {loading && <div className="season-details-loading">Loading...</div>}
-      {error && <div className="season-details-error">{error}</div>}
+      {error && (
+        <div className="season-details-error">{getErrorMessage(error)}</div>
+      )}
       {!loading && !error && season && (
         <div className="season-details-content">
           <h2 className="season-details-title">{season.title}</h2>

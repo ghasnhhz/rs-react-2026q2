@@ -5,7 +5,8 @@ import type { RootState, AppDispatch } from '../store/store';
 import { toggleItem } from '../store/slices/selectedItemsSlice';
 import type { Season } from '../types/season';
 import { ITEMS_PER_PAGE } from '../constants';
-import { useSeasons } from '../hooks/useSeasons';
+import { seasonsApi, useSearchSeasonsQuery } from '../store/api/seasonsApi';
+import { getErrorMessage } from '../utils/getErrorMessage';
 import { useUrlPagination } from '../hooks/useUrlPagination';
 import CardList from './CardList';
 import Pagination from './Pagination';
@@ -16,7 +17,7 @@ interface MainLayoutProps {
 }
 
 function MainLayout({ searchTerm }: MainLayoutProps) {
-  const { loading, results, error } = useSeasons(searchTerm);
+  const { data: results = [], isLoading, isFetching, error } = useSearchSeasonsQuery(searchTerm);
   const { currentPage, totalPages, setPage, paginatedItems } =
     useUrlPagination(results.length, ITEMS_PER_PAGE);
   const detailsMatch = useMatch('/details/:detailsId');
@@ -49,6 +50,12 @@ function MainLayout({ searchTerm }: MainLayoutProps) {
     navigate({ pathname: '/', search: search ? `?${search}` : '' });
   };
 
+  const handleRefresh = () => {
+    dispatch(
+      seasonsApi.util.invalidateTags([{ type: 'Seasons', id: searchTerm || 'ALL' }])
+    );
+  };
+
   const handleErrorButtonClick = () => {
     setShouldThrowError(true);
   };
@@ -71,9 +78,9 @@ function MainLayout({ searchTerm }: MainLayoutProps) {
         }}
         aria-label={isDetailsOpen ? 'Close details panel' : undefined}
       >
-        {loading && <div className="loading">Loading...</div>}
-        {error && <div className="error">{error}</div>}
-        {!loading && !error && (
+        {isLoading && <div className="loading">Loading...</div>}
+        {error && <div className="error">{getErrorMessage(error)}</div>}
+        {!isLoading && !error && (
           <>
             <CardList
               seasons={visibleSeasons}
@@ -89,6 +96,17 @@ function MainLayout({ searchTerm }: MainLayoutProps) {
             />
           </>
         )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRefresh();
+          }}
+          className="refresh-button"
+          disabled={isFetching}
+        >
+          {isFetching ? 'Refreshing…' : 'Refresh'}
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
