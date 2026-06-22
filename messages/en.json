@@ -1,0 +1,71 @@
+{
+  "Nav": {
+    "ariaLabel": "Main navigation",
+    "home": "Home",
+    "about": "About"
+  },
+  "Search": {
+    "inputLabel": "Search seasons",
+    "placeholder": "Search seasons...",
+    "submit": "Search",
+    "loading": "Loading...",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "errorButton": "Error",
+    "noResults": "No results found",
+    "error": "Something went wrong while loading seasons. Please try again."
+  },
+  "Pagination": {
+    "ariaLabel": "Results pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "info": "Page {currentPage} of {totalPages}"
+  },
+  "Details": {
+    "ariaLabel": "Season details",
+    "close": "Close details",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "loading": "Loading...",
+    "season": "Season {number}",
+    "episodes": "{count} episodes",
+    "episodesNA": "N/A",
+    "episodesHeading": "Episodes",
+    "notFound": "Season not found"
+  },
+  "Flyout": {
+    "selected": "{count, plural, one {# item selected} other {# items selected}}",
+    "unselectAll": "Unselect All",
+    "download": "Download"
+  },
+  "Theme": {
+    "switchTo": "Switch to {theme} theme",
+    "current": "Current theme: {theme}",
+    "dark": "dark",
+    "light": "light"
+  },
+  "Language": {
+    "label": "Language",
+    "en": "English",
+    "ru": "Русский"
+  },
+  "About": {
+    "title": "About This Application",
+    "intro": "This Star Trek Seasons Explorer is built as part of the <rsLink>RS School React Course</rsLink>.",
+    "description": "The application allows you to search and explore Star Trek seasons using the <strong>Star Trek API (STAPI)</strong>.",
+    "authorHeading": "Author",
+    "author": "Developed by <ghLink>ghasnhhz</ghLink> (<repoLink>project repository</repoLink>).",
+    "featuresHeading": "Features",
+    "feature1": "Search for Star Trek seasons by title",
+    "feature2": "Browse through paginated results",
+    "feature3": "View detailed information about each season",
+    "feature4": "Responsive design for all devices",
+    "backHome": "← Back to Home"
+  },
+  "NotFound": {
+    "title": "404",
+    "heading": "Page Not Found",
+    "message": "Sorry, the page you're looking for doesn't exist.",
+    "backHome": "Return to Home"
+  }
+}
