@@ -4,15 +4,14 @@ import './CardList.css';
 
 interface CardListProps {
   seasons: Season[];
+  query: Record<string, string>;
   selectedId?: string;
-  selectedItemIds?: string[];
-  onSelect?: (uid: string) => void;
-  onCheckboxChange?: (season: Season) => void;
+  emptyLabel?: string;
 }
 
-function CardList({ seasons, selectedItemIds, onSelect, onCheckboxChange }: CardListProps) {
+function CardList({ seasons, query, selectedId, emptyLabel = 'No results found' }: CardListProps) {
   if (seasons.length === 0) {
-    return <div className="no-results">No results found</div>;
+    return <div className="no-results">{emptyLabel}</div>;
   }
 
   return (
@@ -21,9 +20,8 @@ function CardList({ seasons, selectedItemIds, onSelect, onCheckboxChange }: Card
         <Card
           key={season.uid}
           season={season}
-          isSelected={selectedItemIds?.includes(season.uid) ?? false}
-          onSelect={onSelect}
-          onCheckboxChange={onCheckboxChange}
+          query={query}
+          isActive={selectedId === season.uid}
         />
       ))}
     </div>

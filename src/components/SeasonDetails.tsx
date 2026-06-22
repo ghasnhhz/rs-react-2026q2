@@ -1,74 +1,52 @@
-import { skipToken } from '@reduxjs/toolkit/query';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '../store/store';
-import { seasonsApi, useGetSeasonDetailsQuery } from '../store/api/seasonsApi';
-import { getErrorMessage } from '../utils/getErrorMessage';
+import { getTranslations } from 'next-intl/server';
+import { Link } from '../i18n/navigation';
+import type { SeasonDetails as SeasonDetailsType } from '../types/season';
+import RefreshButton from './RefreshButton';
 import './SeasonDetails.css';
 
-function SeasonDetails() {
-  const { detailsId } = useParams<{ detailsId: string }>();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-  const {
-    data: season,
-    isLoading: loading,
-    isFetching,
-    error,
-  } = useGetSeasonDetailsQuery(detailsId ?? skipToken);
+interface SeasonDetailsProps {
+  season: SeasonDetailsType | null;
+  query: Record<string, string>;
+  hasError?: boolean;
+}
 
-  const handleRefresh = () => {
-    if (!detailsId) return;
-    dispatch(
-      seasonsApi.util.invalidateTags([{ type: 'SeasonDetails', id: detailsId }])
-    );
-  };
+async function SeasonDetails({ season, query, hasError = false }: SeasonDetailsProps) {
+  const t = await getTranslations('Details');
 
-  const handleClose = () => {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete('details');
-    const search = nextParams.toString();
-    navigate({ pathname: '/', search: search ? `?${search}` : '' });
-  };
+  const closeQuery = { ...query };
+  delete closeQuery.details;
 
-  const episodeCount = season?.numberOfEpisodes
-    ? `${season.numberOfEpisodes} episodes`
-    : 'N/A';
+  const episodeCount =
+    season?.numberOfEpisodes != null
+      ? t('episodes', { count: season.numberOfEpisodes })
+      : t('episodesNA');
 
   return (
-    <aside className="season-details" aria-label="Season details">
-      <button
-        type="button"
+    <aside className="season-details" aria-label={t('ariaLabel')}>
+      <Link
+        href={{ pathname: '/', query: closeQuery }}
         className="season-details-close"
-        onClick={handleClose}
-        aria-label="Close details"
+        aria-label={t('close')}
       >
         ×
-      </button>
-      <button
-        type="button"
+      </Link>
+      <RefreshButton
         className="season-details-refresh"
-        onClick={handleRefresh}
-        disabled={isFetching}
-      >
-        {isFetching ? 'Refreshing…' : 'Refresh'}
-      </button>
-      {loading && <div className="season-details-loading">Loading...</div>}
-      {error && (
-        <div className="season-details-error">{getErrorMessage(error)}</div>
-      )}
-      {!loading && !error && season && (
+        label={t('refresh')}
+        refreshingLabel={t('refreshing')}
+      />
+      {hasError && <div className="season-details-error">{t('notFound')}</div>}
+      {!hasError && season && (
         <div className="season-details-content">
           <h2 className="season-details-title">{season.title}</h2>
           <p className="season-details-series">{season.series.title}</p>
           {season.seasonNumber != null && (
-            <p className="season-details-meta">Season {season.seasonNumber}</p>
+            <p className="season-details-meta">{t('season', { number: season.seasonNumber })}</p>
           )}
           <p className="season-details-meta">{episodeCount}</p>
           {season.episodes && season.episodes.length > 0 && (
             <section className="season-details-episodes">
-              <h3>Episodes</h3>
+              <h3>{t('episodesHeading')}</h3>
               <ul>
                 {season.episodes.map((episode) => (
                   <li key={episode.uid}>
@@ -80,8 +58,8 @@ function SeasonDetails() {
           )}
         </div>
       )}
-      {!loading && !error && !season && (
-        <div className="season-details-error">Season not found</div>
+      {!hasError && !season && (
+        <div className="season-details-error">{t('notFound')}</div>
       )}
     </aside>
   );
