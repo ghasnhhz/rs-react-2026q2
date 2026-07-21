@@ -1,51 +1,67 @@
-import { type ChangeEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { SEARCH_TERM_KEY, useLocalStorage } from '../hooks/useLocalStorage';
+'use client';
+
+import { type ChangeEvent, useState, useSyncExternalStore } from 'react';
+import { useTranslations } from 'next-intl';
+import { Link } from '../i18n/navigation';
+import { SEARCH_TERM_KEY, readLocalStorage } from '../hooks/useLocalStorage';
+import { searchAction } from '../lib/actions';
+import LanguageSwitcher from './LanguageSwitcher';
 import ThemeSwitcher from './ThemeSwitcher';
 import './Header.css';
 
-interface HeaderProps {
-  onSubmitted: (text: string) => void;
-}
-
-function Header({ onSubmitted }: HeaderProps) {
-  const { value: input, setValue: setInput, saveValue } = useLocalStorage(
-    SEARCH_TERM_KEY,
-    ''
+function Header() {
+  const tNav = useTranslations('Nav');
+  const tSearch = useTranslations('Search');
+  // Read the persisted term from localStorage with a proper server snapshot ('')
+  // so the server and first client render match; user edits overlay it via `edited`.
+  const stored = useSyncExternalStore(
+    () => () => {}, // no-op subscribe (value is read once on mount)
+    () => readLocalStorage(SEARCH_TERM_KEY).trim(), // client snapshot
+    () => '' // server snapshot (avoids hydration mismatch)
   );
+  const [edited, setEdited] = useState<string | null>(null);
+  const input = edited ?? stored;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
+    setEdited(e.target.value);
   };
 
-  const handleButtonClick = () => {
-    const cleanTerm = input.trim();
-    saveValue(cleanTerm);
-    onSubmitted(cleanTerm);
+  // Persist the term, then delegate to the server action which redirects to the results.
+  const handleSubmit = (formData: FormData) => {
+    const term = (formData.get('q') ?? '').toString().trim();
+    try {
+      localStorage.setItem(SEARCH_TERM_KEY, term);
+    } catch {
+      // localStorage may be unavailable; ignore persistence errors
+    }
+    return searchAction(formData);
   };
 
   return (
     <header className="header">
-      <nav className="header-nav" aria-label="Main navigation">
-        <Link to="/" className="nav-link">
-          Home
+      <nav className="header-nav" aria-label={tNav('ariaLabel')}>
+        <Link href="/" className="nav-link">
+          {tNav('home')}
         </Link>
-        <Link to="/about" className="nav-link">
-          About
+        <Link href="/about" className="nav-link">
+          {tNav('about')}
         </Link>
       </nav>
-      <div className="header-search">
+      <form className="header-search" action={handleSubmit}>
         <input
           type="text"
+          name="q"
           className="search-input"
           onChange={handleInputChange}
           value={input}
-          aria-label="Search seasons"
+          aria-label={tSearch('inputLabel')}
+          placeholder={tSearch('placeholder')}
         />
-        <button className="search-button" onClick={handleButtonClick}>
-          Search
+        <button type="submit" className="search-button">
+          {tSearch('submit')}
         </button>
-      </div>
+      </form>
+      <LanguageSwitcher />
       <ThemeSwitcher />
     </header>
   );

@@ -18,16 +18,19 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.pagination-button:hover:not(:disabled) {
+.pagination-button:hover:not(.pagination-button--disabled) {
   background: #e8edf5;
   border-color: #2a5298;
 }
 
-.pagination-button:disabled {
+.pagination-button--disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .pagination-info {

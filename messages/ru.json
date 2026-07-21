@@ -1,0 +1,71 @@
+{
+  "Nav": {
+    "ariaLabel": "Основная навигация",
+    "home": "Главная",
+    "about": "О приложении"
+  },
+  "Search": {
+    "inputLabel": "Поиск сезонов",
+    "placeholder": "Поиск сезонов...",
+    "submit": "Искать",
+    "loading": "Загрузка...",
+    "refresh": "Обновить",
+    "refreshing": "Обновление…",
+    "errorButton": "Ошибка",
+    "noResults": "Ничего не найдено",
+    "error": "Не удалось загрузить сезоны. Попробуйте ещё раз."
+  },
+  "Pagination": {
+    "ariaLabel": "Постраничная навигация",
+    "previous": "Назад",
+    "next": "Вперёд",
+    "info": "Страница {currentPage} из {totalPages}"
+  },
+  "Details": {
+    "ariaLabel": "Сведения о сезоне",
+    "close": "Закрыть сведения",
+    "refresh": "Обновить",
+    "refreshing": "Обновление…",
+    "loading": "Загрузка...",
+    "season": "Сезон {number}",
+    "episodes": "{count} эпизодов",
+    "episodesNA": "Н/Д",
+    "episodesHeading": "Эпизоды",
+    "notFound": "Сезон не найден"
+  },
+  "Flyout": {
+    "selected": "{count, plural, one {Выбран # элемент} few {Выбрано # элемента} many {Выбрано # элементов} other {Выбрано # элементов}}",
+    "unselectAll": "Снять выбор",
+    "download": "Скачать"
+  },
+  "Theme": {
+    "switchTo": "Переключить на {theme} тему",
+    "current": "Текущая тема: {theme}",
+    "dark": "тёмную",
+    "light": "светлую"
+  },
+  "Language": {
+    "label": "Язык",
+    "en": "English",
+    "ru": "Русский"
+  },
+  "About": {
+    "title": "О приложении",
+    "intro": "Этот обозреватель сезонов «Звёздного пути» создан в рамках <rsLink>курса RS School React</rsLink>.",
+    "description": "Приложение позволяет искать и изучать сезоны «Звёздного пути» с помощью <strong>Star Trek API (STAPI)</strong>.",
+    "authorHeading": "Автор",
+    "author": "Разработано <ghLink>ghasnhhz</ghLink> (<repoLink>репозиторий проекта</repoLink>).",
+    "featuresHeading": "Возможности",
+    "feature1": "Поиск сезонов «Звёздного пути» по названию",
+    "feature2": "Просмотр результатов с разбивкой на страницы",
+    "feature3": "Просмотр подробной информации о каждом сезоне",
+    "feature4": "Адаптивный дизайн для всех устройств",
+    "backHome": "← Назад на главную"
+  },
+  "NotFound": {
+    "title": "404",
+    "heading": "Страница не найдена",
+    "message": "К сожалению, запрашиваемая страница не существует.",
+    "backHome": "Вернуться на главную"
+  }
+}
