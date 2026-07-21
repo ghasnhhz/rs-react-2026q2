@@ -1,0 +1,152 @@
+.main {
+  background: var(--bg-panel);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  height: calc(100vh - 220px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.main--split {
+  flex-direction: row;
+  gap: 20px;
+  max-width: none;
+  overflow: hidden;
+  height: calc(100vh - 220px);
+  min-height: unset;
+}
+
+.main-list-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.main--split .main-list-panel {
+  cursor: pointer;
+}
+
+.main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.main::-webkit-scrollbar-thumb {
+  background: #2a5298;
+  border-radius: 10px;
+}
+
+.main::-webkit-scrollbar-thumb:hover {
+  background: #1e3c72;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-size: 20px;
+  color: #2a5298;
+  font-weight: 600;
+}
+
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #2a5298;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #c62828;
+  margin-bottom: 20px;
+  font-size: 16px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+}
+
+.error-button {
+  position: static;
+  align-self: flex-end;
+  padding: 10px 20px;
+  font-size: 14px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.error-button:hover {
+  background: #ee5a52;
+  transform: scale(1.05);
+}
+
+.refresh-button {
+  position: static;
+  align-self: flex-end;
+  padding: 10px 20px;
+  font-size: 14px;
+  background: #2a5298;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+  margin-bottom: 10px;
+}
+
+.refresh-button:hover {
+  background: #1e3c72;
+  transform: scale(1.05);
+}
+
+.refresh-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.refresh-button:disabled:hover {
+  background: #2a5298;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 20px;
+  }
+
+  .error-button {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
+  }
+}

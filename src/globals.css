@@ -1,0 +1,45 @@
+:root {
+  --bg-page: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  --bg-panel: rgba(255, 255, 255, 0.95);
+  --bg-card: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --bg-card-selected: linear-gradient(135deg, #e8edf5 0%, #b8c9e0 100%);
+  --color-text-primary: #1e3c72;
+  --color-text-secondary: #555555;
+  --color-accent: #2a5298;
+  --color-border: #e0e0e0;
+  --color-input-bg: #ffffff;
+  --color-input-text: #333333;
+  --color-input-border-focus: #2a5298;
+}
+
+[data-theme="dark"] {
+  --bg-page: linear-gradient(135deg, #0a0e1a 0%, #141928 100%);
+  --bg-panel: rgba(20, 25, 40, 0.97);
+  --bg-card: linear-gradient(135deg, #1c2030 0%, #242b40 100%);
+  --bg-card-selected: linear-gradient(135deg, #1e2d50 0%, #263660 100%);
+  --color-text-primary: #c8d4f0;
+  --color-text-secondary: #8a95b0;
+  --color-accent: #5b8af5;
+  --color-border: #2a3255;
+  --color-input-bg: #111828;
+  --color-input-text: #c8d4f0;
+  --color-input-border-focus: #5b8af5;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-page);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#root {
+  max-width: 1100px;
+  margin: 0 auto;
+}

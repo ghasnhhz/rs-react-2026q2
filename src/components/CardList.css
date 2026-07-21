@@ -1,0 +1,18 @@
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .no-results {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    font-size: 18px;
+    color: #999;
+    font-weight: 500;
+  }
